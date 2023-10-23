@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+    webdev2_backend:
+        container_name: webdev2_backend
+        image: sasacrow/webdev2_backend:1.0.0
+        build: .
+        ports:
+            - "8000:8000"
+        env_file:
+            - .env
+        depends_on:
+            - webdev2_backend_db
+        volumes:
+            - .:/var/www/html # Mount the current directory into the container
+        networks:
+            - webdev2_backend-network
+
+    webdev2_backend_db:
+        container_name: webdev2_backend_db
+        image: mysql:8
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: admin
+            MYSQL_DB: webdev2_backend_db
+        volumes:
+            - mysqldata:/var/lib/mysql
+        networks:
+            - webdev2_backend-network
+
+    phpmyadminpanel:
+        container_name: phpmyadminpanel
+        image: phpmyadmin/phpmyadmin
+        ports:
+            - "8081:80"
+        environment:
+            PMA_HOST: webdev2_backend_db # Use the name of your MySQL service (defined in this file) as the host
+            PMA_PORT: 3306
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: admin
+        networks:
+            - webdev2_backend-network
+
+volumes:
+    mysqldata: {}
+
+networks:
+    webdev2_backend-network:
