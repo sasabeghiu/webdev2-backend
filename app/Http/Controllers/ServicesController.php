@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class ServicesController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with pagination.
      */
     public function index()
     {
