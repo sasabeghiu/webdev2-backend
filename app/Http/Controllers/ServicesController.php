@@ -12,7 +12,7 @@ class ServicesController extends Controller
      */
     public function index()
     {
-        $services = Service::orderBy('price', 'desc')->paginate(10);
+        $services = Service::orderBy('price', 'desc')->paginate(5);
 
         if ($services->isEmpty()) {
             return response()->json([]);
