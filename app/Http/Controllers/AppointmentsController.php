@@ -43,12 +43,13 @@ class AppointmentsController extends Controller
      */
     public function show(string $id)
     {
-        try {
-            $existingAppointment = Appointment::findOrFail($id);
-            return $this->json($existingAppointment);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->json("Appointment not found", 404);
+        $existingAppointment = Appointment::find($id);
+
+        if ($existingAppointment) {
+            return response()->json($existingAppointment);
         }
+
+        return response()->json("Appointment not found", 404);
     }
 
     /**

@@ -44,12 +44,13 @@ class ServicesController extends Controller
      */
     public function show(string $id)
     {
-        try {
-            $existingService = Service::findOrFail($id);
-            return $this->json($existingService);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->json("Service not found", 404);
+        $existingService = Service::find($id);
+
+        if ($existingService) {
+            return response()->json($existingService);
         }
+
+        return response()->json("Service not found", 404);
     }
 
     /**
