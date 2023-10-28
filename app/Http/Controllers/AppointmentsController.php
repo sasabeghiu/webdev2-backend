@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Enums\StatusEnum;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class AppointmentsController extends Controller
 {
@@ -26,16 +28,20 @@ class AppointmentsController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'dateTime'  => 'required|date',
-            'status'    => 'required|string',
-            'notes'     => 'required|string'
-            // userid
-            // serviceid
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'dateTime'  => 'required|date',
+                'status' => 'required|string|in:' . implode(',', StatusEnum::getStatuses()),
+                'notes'     => 'required|string'
+                // userid
+                // serviceid
+            ]);
 
-        $appointment = Appointment::create($validatedData);
-        return response()->json($appointment, 201);
+            $appointment = Appointment::create($validatedData);
+            return response()->json($appointment, 201);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
     }
 
     /**
@@ -59,10 +65,14 @@ class AppointmentsController extends Controller
     {
         $existingAppointment = Appointment::find($id);
 
-        if ($existingAppointment) {
+        if (!$existingAppointment) {
+            return response()->json("Appointment not found", 404);
+        }
+
+        try {
             $validatedData = $request->validate([
                 'dateTime'  => 'required|date',
-                'status'    => 'required|string',
+                'status' => 'required|string|in:' . implode(',', StatusEnum::getStatuses()),
                 'notes'     => 'required|string'
                 // userid
                 // serviceid
@@ -70,8 +80,9 @@ class AppointmentsController extends Controller
 
             $existingAppointment->update($validatedData);
             return response()->json($existingAppointment, 200);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
-        return response()->json("Appointment not found", 404);
     }
 
     /**
