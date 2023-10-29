@@ -7,6 +7,7 @@ use App\Enums\StatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+//add the users and implement the auth and the foreign keys
 class AppointmentsController extends Controller
 {
     /**
