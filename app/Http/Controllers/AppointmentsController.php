@@ -7,7 +7,6 @@ use App\Enums\StatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-//add the users and implement the auth and the foreign keys
 class AppointmentsController extends Controller
 {
     /**
@@ -15,10 +14,19 @@ class AppointmentsController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::orderBy('dateTime', 'desc')->paginate(5);
+        $appointments = Appointment::with('service')->orderBy('dateTime', 'desc')->paginate(5);
 
         if ($appointments->isEmpty()) {
             return response()->json([]);
+        }
+
+        foreach ($appointments as $appointment) {
+            //concatinate service id and name to display in the front end field data
+            $serviceIdandName = $appointment->service->id . ' - ' . $appointment->service->name;
+            $appointment->serviceId = $serviceIdandName;
+
+            //remove service object from the response
+            unset($appointment->service);
         }
 
         return response()->json($appointments);
@@ -33,12 +41,15 @@ class AppointmentsController extends Controller
             $validatedData = $request->validate([
                 'dateTime'  => 'required|date',
                 'status' => 'required|string|in:' . implode(',', StatusEnum::getStatuses()),
-                'notes'     => 'required|string'
+                'notes'     => 'required|string',
+                'serviceId' => 'required|exists:services,id'
                 // userid
-                // serviceid
             ]);
 
             $appointment = Appointment::create($validatedData);
+            $appointment->serviceId = $validatedData['serviceId'];
+            $appointment->save();
+
             return response()->json($appointment, 201);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
@@ -50,9 +61,16 @@ class AppointmentsController extends Controller
      */
     public function show(string $id)
     {
-        $existingAppointment = Appointment::find($id);
+        $existingAppointment = Appointment::with('service')->find($id);
 
         if ($existingAppointment) {
+            //concatinate service id and name to display in the front end field data
+            $serviceIdandName = $existingAppointment->service->id . ' - ' . $existingAppointment->service->name;
+            $existingAppointment->serviceId = $serviceIdandName;
+
+            //remove service object from the response
+            unset($existingAppointment->service);
+
             return response()->json($existingAppointment);
         }
 
@@ -74,12 +92,15 @@ class AppointmentsController extends Controller
             $validatedData = $request->validate([
                 'dateTime'  => 'required|date',
                 'status' => 'required|string|in:' . implode(',', StatusEnum::getStatuses()),
-                'notes'     => 'required|string'
+                'notes'     => 'required|string',
+                'serviceId' => 'required|exists:services,id'
                 // userid
-                // serviceid
             ]);
 
             $existingAppointment->update($validatedData);
+            $existingAppointment->serviceId = $validatedData['serviceId'];
+            $existingAppointment->save();
+
             return response()->json($existingAppointment, 200);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
